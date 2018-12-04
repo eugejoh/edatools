@@ -72,7 +72,7 @@ map_df(params$dat, class) %>%
   add_kable(caption = "Dataset Variable Class and Missing Values")
 ```
 
-# Missing Values and Data Type
+# Missing Values, Data Type, Unique Values
 
 ## Table
 The table below displays the data type, counts/proportion of missing values `NA`, and whether the data is labelled or not.  
@@ -88,6 +88,11 @@ tab_describe %>%
 df_describe_p(tab_describe, params$dat, dat_name = params$name_i)
 ```
 
+## Unique Values
+```{r unique_tab, echo = FALSE}
+length_unique(params$dat, kable = FALSE) %>% 
+  add_DT(caption = paste0("Unique Values ", params$name_i))
+```
 
 # Variable Content {.tabset}
 This section contains an analysis of the variable content composition by describing the type of data content that exist based on **numeric** values, **character** values, **punctuation** or **symbols**, and **blank** space. This is especially useful when data types are not identified or misclassified.  
@@ -153,7 +158,7 @@ if (length(names(dplyr::select_if(params$dat, is.numeric))) < 1) {
 }
 ```
 
-`r if(cont_log) {"# Continuous Variables {.tabset}"}`
+`r if(cont_log) {"# Continuous Variables"}`
 ```{r cont_vars-md, include=FALSE, message=FALSE}
 out_cont <- NULL
 for (j in names(dplyr::select_if(params$dat, is.numeric))) { #based on the names that are numeric
@@ -169,7 +174,7 @@ if (length(names(dplyr::select_if(params$dat, funs(is.character(.) | is.factor(.
 }
 ```
 
-`r if(cat_log) {"# Categorical Variables {.tabset}"}`
+`r if(cat_log) {"# Categorical Variables"}`
 ```{r catgorical_vars-md, include=FALSE}
 out_cat <- NULL
 
