@@ -20,29 +20,25 @@ params:
 title: "`r params$set_title`"
 ---
 
+<!-- The input for this parameterized R markdown file is a named `list` of `data.frames` -->
+
 ```{r setup, include=FALSE}
-library(knitr)
-library(kableExtra)
+if (!require(here)) install.packages("here")
+# setup knitr chunks
 knitr::opts_chunk$set(echo = TRUE, fig.width = 9.2, message = FALSE, warning = FALSE)
+
+# load functions from "R" folder
+if (any(grepl("R", list.files(here::here())))) invisible(lapply(list.files(here::here("R"), full.names = TRUE), source))
 ```
 
 ```{r load_packages, echo=FALSE, include=FALSE}
-if (!require(here)) install.packages("here")
-
-if (any(grepl("01_load_packages.R",list.files(here::here())))) source(here("01_load_packages.R"))
-
-install_packs <- function(pkg) {
-  new_pkg <- pkg[!(pkg %in% installed.packages()[,"Package"])]
-  if (length(new_pkg)) {
-    install.packages(new_pkg, dependencies = TRUE)
-  }
-  sapply(pkg, require, character.only = TRUE)
-}
-foundation.packages <- c("haven","readr","here", #import
-                         "dplyr","tidyr","purrr","data.table","janitor","magrittr","stringr", #process
-                         "ggplot2","scales","forcats","ggfortify","grid","gridExtra", #data viz
-                         "plotly","htmlwidgets","dygraphs","leaflet") #html widgets
+foundation.packages <- c("haven","readr", #import
+                         "dplyr","tidyr","purrr","data.table","forcats","stringr", #process
+                         "ggplot2","scales","ggfortify","grid","gridExtra", #data viz
+                         "kableExtra","DT","htmlwidgets") #html widgets
 install_packs(foundation.packages); rm(foundation.packages)
+
+
 ```
 
 ```{r load_fnc, include = FALSE}
