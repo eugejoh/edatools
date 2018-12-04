@@ -1,0 +1,129 @@
+---
+author: "Eugene Joh"
+date: "`r format(Sys.Date(), '%A, %B %d, %Y')`"
+output: 
+  html_document:
+    code_folding: hide
+    theme: simplex
+    highlight: tango
+    df_print: kable
+    css: toc_css.css
+    toc: yes
+    toc_depth: 3
+params:
+  set_title: "EDA: blank"
+  len_i: 1
+  dat: list[i]
+  name_i: "first list object"
+  cont: TRUE
+  catgry: TRUE
+title: "`r params$set_title`"
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(kableExtra)
+knitr::opts_chunk$set(echo = TRUE, fig.width = 9.2, message = FALSE, warning = FALSE)
+```
+
+```{r load_packages, echo=FALSE, include=FALSE}
+if (!require(here)) install.packages("here")
+
+if (any(grepl("01_load_packages.R",list.files(here::here())))) source(here("01_load_packages.R"))
+
+install_packs <- function(pkg) {
+  new_pkg <- pkg[!(pkg %in% installed.packages()[,"Package"])]
+  if (length(new_pkg)) {
+    install.packages(new_pkg, dependencies = TRUE)
+  }
+  sapply(pkg, require, character.only = TRUE)
+}
+foundation.packages <- c("haven","readr","here", #import
+                         "dplyr","tidyr","purrr","data.table","janitor","magrittr","stringr", #process
+                         "ggplot2","scales","forcats","ggfortify","grid","gridExtra", #data viz
+                         "plotly","htmlwidgets","dygraphs","leaflet") #html widgets
+install_packs(foundation.packages); rm(foundation.packages)
+```
+
+```{r load_fnc, include = FALSE}
+if (any(grepl("_fnc", list.files(here::here())))) invisible(lapply(list.files(here::here("_fnc"), full.names = TRUE), source))
+
+add_kable <- function(input, ...) {
+  input %>% kable(., digits = 2, ...) %>% 
+  kable_styling(bootstrap_options = c("striped", "hover","responsive"),
+                full_width=FALSE)
+}
+
+```
+
+```{r}
+cont_log <- TRUE
+cat_log <- TRUE
+```
+
+# Overview 
+This parameterized markdown file is a standarized exploratory analysis report, examining the data type, structure, missing values, unique values, summary statistics for continuous and categorical variables.  
+
+This does not support `date-time` varaibles such as `POSIXct` or `Date`, but will eventually move to support all data types typically found in `data.frame` in the R environment.  
+
+# Data Structure
+The input file **`r params$name_i`** is a `r class(params$dat)`. It contains `r nrow(params$dat)` rows and `r ncol(params$dat)` columns. The table below summarizes the data structure of the object. The column names are displayed in the code chunk below.
+
+```{r dims_tab, echo = FALSE}
+data.frame(Object = paste0(params$name_i),
+           ncol = ncol(params$dat),
+           nrow = nrow(params$dat)) %>% 
+  mutate(elements = ncol*nrow) %>%
+  add_kable(caption = "Dataset Dimensions")
+```
+
+```{r colnames, echo = FALSE}
+map_df(params$dat, class) %>% 
+  gather(key = "Variable", value = "Class") %>% 
+  mutate(missing = map_dbl(params$dat, ~sum(is.na(.)))) %>% 
+  add_kable(caption = "Dataset Variable Class and Missing Values")
+```
+
+<!-- Continuous Variables -->
+```{r include = FALSE}
+if (length(names(dplyr::select_if(params$dat, is.numeric))) < 1) {
+  cont_log <- FALSE #set condition for creating following code chunks
+}
+```
+
+`r if(cont_log) {"# Continuous Variables {.tabset}"}`
+```{r cont_vars-md, include=FALSE, message=FALSE}
+out_cont <- NULL
+for (j in names(select_if(params$dat, is.numeric))) { #based on the names that are numeric
+  out_cont <- c(out_cont, knitr::knit_child('cont_var.Rmd')) #apply child .Rmd to select variables
+}
+```
+`r paste(out_cont, collapse = '\n')`
+
+<!-- Categorical Variables -->
+```{r}
+if (length(names(select_if(params$dat, funs(is.character(.) | is.factor(.))))) == 0) {
+  cat_log <- FALSE
+}
+```
+
+`r if(cat_log) {"# Categorical Variables {.tabset}"}`
+```{r catgorical_vars-md, include=FALSE}
+out_cat <- NULL
+
+for (k in names(select_if(params$dat, funs(is.character(.) | is.factor(.))))) {
+  out_cat <- c(out_cat, knitr::knit_child('cat_var.Rmd'))
+}
+```
+`r paste(out_cat, collapse = '\n')`
+
+
+# R Session Info
+```{r echo = FALSE}
+sessionInfo()
+```
+
+<br>
+<br>
+
+Report by the [Centre for Global Health Research](www.cghr.org/)

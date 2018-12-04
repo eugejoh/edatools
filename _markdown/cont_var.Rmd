@@ -1,0 +1,20 @@
+<!-- Continuous Variables Child .Rmd -->
+## `r paste(j)`
+
+```{r warning=FALSE, message=FALSE}
+upp <- max(params$dat[[j]], na.rm=TRUE)
+
+ggplot(params$dat, aes(params$dat[[j]])) +
+  geom_histogram(binwidth = upp/10, na.rm=  TRUE, colour = "grey15") +
+  labs(title = paste0("Histogram of ", names(params$dat[j])),
+       y = "Count",
+       x = paste0(names(params$dat[j])))
+```
+
+```{r}
+names(params$dat[j])
+head(params$dat[[j]])
+tail(params$dat[[j]])
+
+summary(params$dat[[j]])
+```

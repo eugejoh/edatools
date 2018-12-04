@@ -1,0 +1,28 @@
+<!-- Categorical Variables Child .Rmd -->
+## `r paste(k)`
+
+```{r include=FALSE}
+len <- 0.3*length(unique(params$dat[[k]]))
+```
+
+```{r fig.height=len}
+params$dat %>% count(var_c = params$dat[[k]]) %>% 
+ggplot(aes(y=n, x=reorder(var_c, n), fill=var_c)) +
+  geom_bar(stat='identity') +
+  labs(title = paste0("Bar Plot of `", names(params$dat[k]),"`"),
+       y = "Count",
+       x = paste0(names(params$dat[k]))) +
+  coord_flip() +
+  guides(fill=FALSE)
+```
+
+```{r}
+names(params$dat[k])
+```
+
+```{r}
+head(params$dat[[k]])
+tail(params$dat[[k]])
+```
+
+
