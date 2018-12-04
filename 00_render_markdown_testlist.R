@@ -17,7 +17,7 @@ library(dplyr)
 
 
 # parameterized markdown rendering ----------------------------------------
-render_list <- function(input) {
+render_list <- function(input, clear = FALSE) {
   if (!is.list(input)) stop("'input' argument must be a list")
   
   if (is.null(names(input))) stop("'input' should be a named list")
@@ -26,12 +26,12 @@ render_list <- function(input) {
 
   for (i in seq_len(length(input))) {
     rmarkdown::render(
-      input = here::here("_markdown_eda", "eda_test1.Rmd"),
+      input = here::here("_markdown", "eda_test1.Rmd"),
       output_file = paste0("eda_test1_", names(input)[i], ".html"),
       output_dir = here::here("_reports"),
       quiet = FALSE,
       params = list(
-        set_title = paste0("EDA: `", names(input)[i], "` dataset"),
+        set_title = paste0("Exploratory Data Analysis: `", names(input)[i], "`"),
         len_i = i,
         dat = input[[i]],
         name_i = names(input)[i],
@@ -41,7 +41,7 @@ render_list <- function(input) {
     )
   }
 
-  
+  if (clear) rm(list=setdiff(ls(), "render_list")) #child document causes problems if not cleared from ls()
 }
 
 
