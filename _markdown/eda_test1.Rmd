@@ -11,18 +11,20 @@ output:
     toc: yes
     toc_depth: 3
 params:
-  set_title: "EDA: blank"
-  len_i: 1
-  dat: list[i]
-  name_i: "first list object"
-  cont: TRUE
-  catgry: TRUE
+  set_title: "Data Profile: blank" #Title "EDA: ..." followed by dataframe name
+  len_i: 1 #number of data frames in list `length(my_list)`
+  dat: list[i] #actual list `my_list`
+  name_i: "first list object" #name of each list `names(my_list)`
+  cont: TRUE #logical to include continuous variables
+  cat: TRUE #logical to include categorical variables
 title: "`r params$set_title`"
 ---
 
 <!-- The input for this parameterized R markdown file is a named `list` of `data.frames` -->
+<!-- The parameters above specify the title used (dependent on each named object in `list`), number of `data.frames` in the list, names of the `data.frames`, logical for whether you want to include continuous and/or categorical variables. -->
 
 ```{r setup, include=FALSE}
+bt <- proc.time()
 if (!require(here)) install.packages("here")
 # setup knitr chunks
 knitr::opts_chunk$set(echo = TRUE, fig.width = 9.2, message = FALSE, warning = FALSE)
@@ -32,45 +34,31 @@ if (any(grepl("R", list.files(here::here())))) invisible(lapply(list.files(here:
 ```
 
 ```{r load_packages, echo=FALSE, include=FALSE}
-foundation.packages <- c("haven","readr", #import
-                         "dplyr","tidyr","purrr","data.table","forcats","stringr", #process
-                         "ggplot2","scales","ggfortify","grid","gridExtra", #data viz
-                         "kableExtra","DT","htmlwidgets") #html widgets
-install_packs(foundation.packages); rm(foundation.packages)
-
-
+packs <- c("dplyr","tidyr","purrr","data.table","forcats","stringr", #process
+           "ggplot2","scales","ggfortify","grid","gridExtra", #data viz
+           "kableExtra","DT","htmlwidgets") #html widgets
+install_packs(packs); rm(packs)
 ```
 
-```{r load_fnc, include = FALSE}
-if (any(grepl("_fnc", list.files(here::here())))) invisible(lapply(list.files(here::here("_fnc"), full.names = TRUE), source))
-
-add_kable <- function(input, ...) {
-  input %>% kable(., digits = 2, ...) %>% 
-  kable_styling(bootstrap_options = c("striped", "hover","responsive"),
-                full_width=FALSE)
-}
-
-```
-
-```{r}
+```{r first_test, include=FALSE, eval=FALSE}
 cont_log <- TRUE
 cat_log <- TRUE
 ```
 
 # Overview 
-This parameterized markdown file is a standarized exploratory analysis report, examining the data type, structure, missing values, unique values, summary statistics for continuous and categorical variables.  
+This parameterized markdown file is a standarized exploratory analysis report, examining the data type, structure, missing values, unique values, summary statistics for continuous and categorical variables contained within a `data.frame` object.   
 
 This does not support `date-time` varaibles such as `POSIXct` or `Date`, but will eventually move to support all data types typically found in `data.frame` in the R environment.  
 
 # Data Structure
-The input file **`r params$name_i`** is a `r class(params$dat)`. It contains `r nrow(params$dat)` rows and `r ncol(params$dat)` columns. The table below summarizes the data structure of the object. The column names are displayed in the code chunk below.
+The input file **`r params$name_i`** is a `r class(params$dat)`. It contains `r nrow(params$dat)` rows and `r ncol(params$dat)` columns. The table below summarizes the data structure of the object. The column names are displayed in the code chunk below.  
 
 ```{r dims_tab, echo = FALSE}
 data.frame(Object = paste0(params$name_i),
            ncol = ncol(params$dat),
            nrow = nrow(params$dat)) %>% 
-  mutate(elements = ncol*nrow) %>%
-  add_kable(caption = "Dataset Dimensions")
+  mutate(elements = ncol*nrow, size = paste0(format(object.size(params$dat), units = "auto"))) %>%
+  add_kable(caption = "Dataset Dimensions", col.names = c("Name", "Number of Columns", "Number of Rows", "Number of Elements", "Object Size"), format.args = list(decimal.mark =',', big.mark = "'"))
 ```
 
 ```{r colnames, echo = FALSE}

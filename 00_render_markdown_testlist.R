@@ -34,7 +34,9 @@ render_list <- function(input) {
         set_title = paste0("EDA: `", names(input)[i], "` dataset"),
         len_i = i,
         dat = input[[i]],
-        name_i = names(input)[i]
+        name_i = names(input)[i],
+        cont = TRUE,
+        cat = TRUE
       )
     )
   }
