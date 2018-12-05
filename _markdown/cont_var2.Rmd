@@ -1,0 +1,27 @@
+<!-- Continuous Variables Child .Rmd -->
+## '{{j}}'  
+  
+```{r tab-{{j}}, echo=FALSE}
+var_cont <- '{{j}}'
+
+params$data %>% summarise(
+  min = min(!!as.name(var_cont),na.rm = TRUE),
+  mean = mean(!!as.name(var_cont),na.rm = TRUE),
+  median = median(!!as.name(var_cont), na.rm=TRUE),
+  max = max(!!as.name(var_cont),na.rm = TRUE),
+  sd = sd(!!as.name(var_cont),na.rm = TRUE)) %>% 
+  add_kable(caption = paste0("Summary Statistics for ", var_cont), col.names = c("Min", "Mean", "Median", "Max", "Standard Deviation"))
+```
+
+```{r p_cont-{{j}}, warning=FALSE, message=FALSE, echo=FALSE}
+upp <- max(params$data[var_cont], na.rm=TRUE)
+
+ggplot(params$data, aes(params$data[[var_cont]])) +
+  geom_histogram(binwidth = upp/10, na.rm = TRUE, colour = "grey15") +
+  labs(title = paste0("Histogram of Variable: ", var_cont),
+       y = "Count",
+       x = paste0(var_cont))
+rm(var_cont, upp)
+```
+
+

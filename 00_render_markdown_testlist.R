@@ -36,17 +36,16 @@ render_list <- function(input, clear = FALSE) {
 
   for (i in seq_len(length(input))) {
     rmarkdown::render(
-      input = here::here("_markdown", "eda_test1.Rmd"),
-      output_file = paste0("eda_test1_", names(input)[i], ".html"),
+      input = here::here("_markdown", "eda_test2.Rmd"),
+      output_file = paste0("eda_test2_", names(input)[i], ".html"),
       output_dir = here::here("_reports"),
       quiet = FALSE,
       params = list(
         set_title = paste0("Exploratory Data Analysis: `", names(input)[i], "`"),
-        len_i = i,
-        dat = input[[i]],
+        data = input[[i]],
         name_i = names(input)[i],
-        cont = TRUE,
-        cat = TRUE
+        continuous = TRUE,
+        categorical = TRUE
       )
     )
     sendtg::tg_send_msg(text = paste0("Completed Rendering EDA Report: ", names(input)[i]))  

@@ -1,0 +1,26 @@
+<!-- Categorical Variables Child .Rmd -->
+## '{{k}}'  
+
+```{r table-{{k}}, echo=FALSE}
+var_ca <- '{{k}}'
+
+cnt <- params$data %>% count(!!as.name(var_ca)) %>% 
+  arrange(desc(n)) %>% 
+  mutate(percent = round(100*n/sum(n), 2)) 
+
+cnt %>% 
+  add_DT(caption = paste0("Counts and Proportions for: ", var_ca))
+```
+
+```{r p_ca-{{k}}, echo=FALSE, eval=TRUE}
+cnt %>% 
+  ggplot(aes(y=n, x=reorder(!!as.name(var_ca), n), fill = !!as.name(var_ca))) +
+  geom_bar(stat='identity') +
+  labs(title = paste0("Counts of `", var_ca,"`"),
+       y = "Count",
+       x = paste0(var_ca)) +
+  coord_flip() +
+  guides(fill=FALSE)
+```
+
+
