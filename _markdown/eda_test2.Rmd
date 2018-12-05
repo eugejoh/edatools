@@ -22,7 +22,6 @@ title: "`r params$set_title`"
 <!-- The input for this parameterized R markdown file is a named `list` of `data.frames` -->
 <!-- The parameters above specify the title used (dependent on each named object in `list`), number of `data.frames` in the list, names of the `data.frames`, logical for whether you want to include continuous and/or categorical variables. -->
 
-
 ```{r setup, include=FALSE}
 bt <- proc.time()
 if (!require(here)) install.packages("here")
@@ -32,15 +31,15 @@ knitr::opts_chunk$set(echo = TRUE, fig.width = 9.2, message = FALSE, warning = F
 # load functions from "R" folder
 if (any(grepl("R", list.files(here::here())))) invisible(lapply(list.files(here::here("R"), full.names = TRUE), source))
 
-# # scale for fig height
-# nvar <- length(names(params$data))
-# fig.h <- nvar*0.8
+# scale for fig height
+nvar <- length(names(params$dat))
+fig.h <- nvar*0.8
 ```
 
 ```{r load_packages, echo=FALSE, include=FALSE}
 packs <- c("haven","dplyr","tidyr","purrr","data.table","forcats","stringr", #process
            "ggplot2","scales","ggfortify","grid","gridExtra", #data viz
-           "knitr","kableExtra","DT","htmlwidgets") #html widgets
+           "kableExtra","DT","htmlwidgets") #html widgets
 install_packs(packs); rm(packs)
 ```
 
@@ -49,19 +48,106 @@ cont_log <- params$continuous
 ca_log <- params$categorical
 ```
 
-```{r figscale, include=FALSE}
-# scale for fig height
-nvar <- length(names(params$data))
-fig.h <- nvar*0.8
-```
-
 # Overview 
 This parameterized markdown file is a standarized exploratory analysis report, examining the data type, structure, missing values, unique values, summary statistics for continuous and categorical variables contained within a `data.frame` object.   
 
 This does not support `date-time` varaibles such as `POSIXct` or `Date`, but will eventually move to support all data types typically found in `data.frame` in the R environment.  
 
 # Data Structure
-The input file **`r params$name_i`** is a `r class(params$data)`. It contains `r nrow(params$data)` rows and `r ncol(params$data)` columns. The table below summarizes the data structure of the object. The column names are displayed in the code chunk below.  
+The input file **`r params$name_i`** is a `r class(params$dat)`. It contains `r nrow(params$dat)` rows and `r ncol(params$dat)` columns. The table below summarizes the data structure of the object. The column names are displayed in the code chunk below.  
+
+```{r dims_tab, echo = FALSE}
+data.frame(Object = paste0(params$name_i),
+           ncol = ncol(params$dat),
+           nrow = nrow(params$dat)) %>% 
+  mutate(elements = ncol*nrow, size = paste0(format(object.size(params$dat), units = "auto"))) %>%
+  add_kable(caption = "Dataset Dimensions", col.names = c("Name", "Number of Columns", "Number of Rows", "Number of Elements", "Memory Allocation"), format.args = list(decimal.mark =',', big.mark = ","))
+```
+
+```{r colnames, echo = FALSE}
+map_df(params$dat, class) %>% 
+  gather(key = "Variable", value = "Class") %>% 
+  mutate(missing = map_dbl(params$dat, ~sum(is.na(.)))) %>% 
+  add_kable(caption = "Dataset Variable Class and Missing Values")
+```
+
+# Missing Values, Data Type, Unique Values
+
+## Table
+The table below displays the data type, counts/proportion of missing values `NA`, and whether the data is labelled or not.  
+```{r na_type_tab, echo = FALSE}
+tab_describe <- df_describe(params$dat)
+tab_describe %>% 
+  add_DT(caption = paste0("NA and Type Table ", params$name_i),
+         colnames = c("Variable", "Missing (n)", "Missing (%)", "Exist (%)", "Data Type", "Labelled"))
+```
+
+## Plot
+```{r plot_tab, fig.height = fig.h, echo = FALSE}
+df_describe_p(tab_describe, params$dat, dat_name = params$name_i)
+```
+
+## Unique Values
+```{r unique_tab, echo = FALSE}
+length_unique(params$dat, kable = FALSE) %>% 
+  add_DT(caption = paste0("Unique Values ", params$name_i))
+```
+
+# Variable Content {.tabset}
+This section contains an analysis of the variable content composition by describing the type of data content that exist based on **numeric** values, **character** values, **punctuation** or **symbols**, and **blank** space. This is especially useful when data types are not identified or misclassified.  
+
+## Only Numbers
+**only_numbs** reports the number of rows that contain only digits `"^[0-9]{1,}$"` and **numpercent** is the respective percentage. **digits_min** and **digits_max** display the length of the digits found in the variable, **digits_eq** is a logical statment of whether the mix and max are equal.  
+```{r nums, echo=FALSE}
+.check_numbs_only(params$dat) %>% 
+    left_join(.check_digit_length(params$dat), by = c("variable")) %>% 
+  add_DT(caption = paste0("Only Numbers: ", params$name_i))
+```
+
+## Only Character
+**only_char** reports the number of rows that contain only characters `"^[A-z]{1,}"` and **charpercent** is the respective percentage.  
+```{r char, echo=FALSE}
+.check_char_only(params$dat) %>% 
+  add_DT(caption = paste0("Only Character: ", params$name_i))
+```
+
+## Only Punctuation
+**only_punc** reports the number of rows that contain only punctuation or symbols `"^\\W+$"` and **puncpercentage** is the respective percentage.   
+```{r punct, echo=FALSE}
+.check_punc_only(params$dat) %>% 
+  add_DT(caption = paste0("Only Punctuation: ", params$name_i))
+```
+
+## Only Blanks
+**only_blanks** reports the number of rows that contain a blank ("") `"^\\s{0}$"` and **blankspercent** is the respective percentage. **only_wspace** reports the number of rows that contain any white-space, including a blank `"^\\s*$"` and **wspacepercent** is the respective percentage.  
+```{r blank, echo=FALSE}
+.check_blanks_only(params$dat) %>% 
+  left_join(.check_wspace_only(params$dat), by = c("variable")) %>% 
+  select(-n_row.x, -n_row.y) %>% 
+    add_DT(caption = paste0("Only Blanks: ", params$name_i))
+```
+
+## All Types
+```{r chr_num_tab, echo=FALSE}
+tab_check <- check_all(params$dat)
+tab_check %>% 
+  add_DT(caption = paste0("All Content Types for ", params$name_i))
+```
+
+# Variable Content Plot
+```{r p_content, fig.height=fig.h, echo=FALSE}
+tab_check %>% select(variable, only_numbs, only_char, only_punc, only_blanks) %>% 
+  gather(key="var_name",value="num_rows",-variable) %>% 
+  mutate(var_name = factor(var_name, 
+                           levels = c("only_numbs", "only_char", "only_punc", "only_blanks"),
+                           labels = c("Numbers", "Character", "Punctuation", "Blanks"))) %>% 
+  ggplot(aes(x=forcats::fct_inorder(variable), y=num_rows, fill = var_name)) +
+  geom_bar(stat='identity', colour = "grey15") +
+  coord_flip() +
+  scale_fill_brewer(type = "qual", palette = 6, name = "Content") +
+  labs(title = paste0(params$name_i, ": Variable Content Composition"),
+       x = "Variable", y = "Number of Rows")
+```
 
 <!-- Continuous Variables -->
 ```{r cont_log, include = FALSE}
