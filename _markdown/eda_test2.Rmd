@@ -1,0 +1,105 @@
+---
+author: "Eugene Joh"
+date: "`r format(Sys.Date(), '%A, %B %d, %Y')`"
+output: 
+  html_document:
+    code_folding: hide
+    theme: simplex
+    highlight: tango
+    df_print: kable
+    css: toc_css.css
+    toc: yes
+    toc_depth: 3
+params:
+  set_title: "Data Profile: blank" #Title "EDA: ..." followed by dataframe name
+  len_i: 1 #number of data frames in list `length(my_list)`
+  dat: list[i] #actual list `my_list`
+  name_i: "first list object" #name of each list `names(my_list)`
+  cont: TRUE #logical to include continuous variables
+  cat: TRUE #logical to include categorical variables
+title: "`r params$set_title`"
+---
+
+<!-- The input for this parameterized R markdown file is a named `list` of `data.frames` -->
+<!-- The parameters above specify the title used (dependent on each named object in `list`), number of `data.frames` in the list, names of the `data.frames`, logical for whether you want to include continuous and/or categorical variables. -->
+
+```{r setup, include=FALSE}
+bt <- proc.time()
+if (!require(here)) install.packages("here")
+# setup knitr chunks
+knitr::opts_chunk$set(echo = TRUE, fig.width = 9.2, message = FALSE, warning = FALSE)
+
+# load functions from "R" folder
+if (any(grepl("R", list.files(here::here())))) invisible(lapply(list.files(here::here("R"), full.names = TRUE), source))
+
+# scale for fig height
+nvar <- length(names(params$dat))
+fig.h <- nvar*0.8
+```
+
+```{r load_packages, echo=FALSE, include=FALSE}
+packs <- c("haven","dplyr","tidyr","purrr","data.table","forcats","stringr", #process
+           "ggplot2","scales","ggfortify","grid","gridExtra", #data viz
+           "kableExtra","DT","htmlwidgets") #html widgets
+install_packs(packs); rm(packs)
+```
+
+```{r first_test, include=FALSE, eval=TRUE}
+cont_log <- params$cont
+cat_log <- params$cat
+```
+
+
+# Overview 
+This parameterized markdown file is a standarized exploratory analysis report, examining the data type, structure, missing values, unique values, summary statistics for continuous and categorical variables contained within a `data.frame` object.   
+
+This does not support `date-time` varaibles such as `POSIXct` or `Date`, but will eventually move to support all data types typically found in `data.frame` in the R environment.  
+
+# Data Structure
+The input file **`r params$name_i`** is a `r class(params$dat)`. It contains `r nrow(params$dat)` rows and `r ncol(params$dat)` columns. The table below summarizes the data structure of the object. The column names are displayed in the code chunk below.  
+
+
+<!-- Continuous Variables -->
+```{r include = FALSE}
+if (length(names(dplyr::select_if(params$dat, is.numeric))) < 1) {
+  cont_log <- FALSE #set condition for creating following code chunks
+}
+```
+
+`r if(cont_log) {"# Continuous Variables"}`
+```{r cont_vars-md, include=FALSE, message=FALSE}
+out_cont <- NULL
+for (j in names(dplyr::select_if(params$dat, is.numeric))) { #based on the names that are numeric
+  out_cont <- c(out_cont, knitr::knit_child('cont_var.Rmd')) #apply child .Rmd to select variables
+}
+```
+`r paste(out_cont, collapse = '\n')`
+
+<!-- Categorical Variables -->
+```{r}
+if (length(names(dplyr::select_if(params$dat, funs(is.character(.) | is.factor(.))))) == 0) {
+  cat_log <- FALSE
+}
+```
+
+`r if(cat_log) {"# Categorical Variables"}`
+```{r catgorical_vars-md, include=FALSE}
+out_cat <- NULL
+
+for (k in names(dplyr::select_if(params$dat, funs(is.character(.) | is.factor(.))))) {
+  out_cat <- c(out_cat, knitr::knit_child('cat_var.Rmd'))
+}
+```
+`r paste(out_cat, collapse = '\n')`
+
+
+# R Session Info
+```{r echo = FALSE}
+sessionInfo()
+```
+
+<br>
+<br>
+Process Time: `r round((proc.time()["elapsed"] - bt["elapsed"])/60, 1)` minutes  
+`r version$version.string`  
+Report by the [Centre for Global Health Research](www.cghr.org/)

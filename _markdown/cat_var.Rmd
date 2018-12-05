@@ -1,28 +1,28 @@
 <!-- Categorical Variables Child .Rmd -->
-## `r paste(k)`
+## `r paste0(k)`
 
 ```{r include=FALSE}
-len <- 0.3*length(unique(params$dat[[k]]))
+len <- 0.75*length(unique(params$dat[[k]]))
 ```
 
-```{r fig.height=len}
-params$dat %>% count(var_c = params$dat[[k]]) %>% 
-ggplot(aes(y=n, x=reorder(var_c, n), fill=var_c)) +
+```{r echo=FALSE}
+cnt <- params$dat %>% count(!!as.name(names(params$dat[k]))) %>% 
+  arrange(desc(n)) %>% 
+  mutate(percent = round(100*n/sum(n), 2)) 
+
+cnt %>% 
+  slice(1:10) %>% 
+  add_kable(caption = paste0("Counts and Proportion for Top 10: ", names(params$dat[k])))
+```
+
+```{r echo=FALSE, eval=TRUE}
+cnt %>% 
+  ggplot(aes(y=n, x=reorder(!!as.name(names(params$dat[k])), n), fill = !!as.name(names(params$dat[k])))) +
   geom_bar(stat='identity') +
-  labs(title = paste0("Bar Plot of `", names(params$dat[k]),"`"),
+  labs(title = paste0("Counts of `", names(params$dat[k]),"`"),
        y = "Count",
        x = paste0(names(params$dat[k]))) +
   coord_flip() +
   guides(fill=FALSE)
 ```
-
-```{r}
-names(params$dat[k])
-```
-
-```{r}
-head(params$dat[[k]])
-tail(params$dat[[k]])
-```
-
 

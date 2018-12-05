@@ -1,20 +1,24 @@
 <!-- Continuous Variables Child .Rmd -->
-## `r paste(j)`
+## `r paste0(j)`
 
-```{r warning=FALSE, message=FALSE}
+```{r echo=FALSE}
+params$dat %>% summarise(
+  min = min(!!as.name(names(params$dat[j])),na.rm = TRUE),
+  mean = mean(!!as.name(names(params$dat[j])),na.rm = TRUE),
+  median = median(!!as.name(names(params$dat[j]))),
+  max = max(!!as.name(names(params$dat[j])),na.rm = TRUE),
+  sd = sd(!!as.name(names(params$dat[j])),na.rm = TRUE)) %>% 
+  add_kable(caption = paste0("Summary Statistics for ", names(params$dat[j])), col.names = c("Min", "Mean", "Median", "Max", "Standard Deviation"))
+```
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
 upp <- max(params$dat[[j]], na.rm=TRUE)
 
 ggplot(params$dat, aes(params$dat[[j]])) +
-  geom_histogram(binwidth = upp/10, na.rm=  TRUE, colour = "grey15") +
-  labs(title = paste0("Histogram of ", names(params$dat[j])),
+  geom_histogram(binwidth = upp/10, na.rm = TRUE, colour = "grey15") +
+  labs(title = paste0("Histogram of Variable:", names(params$dat[j])),
        y = "Count",
        x = paste0(names(params$dat[j])))
 ```
 
-```{r}
-names(params$dat[j])
-head(params$dat[[j]])
-tail(params$dat[[j]])
 
-summary(params$dat[[j]])
-```

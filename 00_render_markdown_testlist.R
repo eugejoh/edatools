@@ -4,8 +4,9 @@ if (!require(here)) install.packages("here")
 library(here)
 library(rmarkdown)
 library(dplyr)
+library(sendtg)
+library(telegram.bot)
 
-# 
 # rmarkdown::render(
 #   input = here::here("_markdown_eda", "eda_test1.Rmd"),
 #   output_format = NULL,
@@ -14,7 +15,16 @@ library(dplyr)
 #   params = "ask",
 #   quiet = TRUE)
 
+# test data ---------------------------------------------------------------
+data("mtcars", "airquality", "starwars", "swiss", "iris")
 
+test_list <- list(
+  mtcars, 
+  airquality, 
+  starwars, 
+  tibble::rownames_to_column(swiss) %>% rename(location=rowname),
+  iris) %>% 
+  setNames(c("mtcars", "airquality", "starwars", "swiss", "iris"))
 
 # parameterized markdown rendering ----------------------------------------
 render_list <- function(input, clear = FALSE) {
@@ -39,21 +49,35 @@ render_list <- function(input, clear = FALSE) {
         cat = TRUE
       )
     )
+    sendtg::tg_send_msg(text = paste0("Completed Rendering EDA Report: ", names(input)[i]))  
   }
 
   if (clear) rm(list=setdiff(ls(), "render_list")) #child document causes problems if not cleared from ls()
+  
 }
 
 
-# test data ---------------------------------------------------------------
-data("mtcars", "airquality", "starwars", "swiss")
-
-test_list <- list(
-  mtcars, 
-  airquality, 
-  starwars, 
-  tibble::rownames_to_column(swiss) %>% rename(location=rowname)) %>% 
-  setNames(c("mtcars", "airquality", "starwars", "swiss"))
-
+# Render ------------------------------------------------------------------
 render_list(test_list)
+
+
+# Reset -------------------------------------------------------------------
+rm(list=setdiff(ls(), "render_list"))
+
+
+
+# Test list #2 -----------------------------------------------------------
+source("00_con_db.R") #connect to db
+
+drown <- dplyr::tbl(con, dbplyr::in_schema("public", "drowning_deaths_mds")) %>% collect()
+dlhs3 <- dplyr::tbl(con, dbplyr::in_schema("public", "dlhs3v")) %>% collect()
+srs_pop1113 <- dplyr::tbl(con, dbplyr::in_schema("public", "srs_pop_11_13_v2")) %>% collect()
+un_pop_deaths <- dplyr::tbl(con, dbplyr::in_schema("public", "un_pop_deaths_ind_16")) %>% collect()
+ahs_10_dist <- dplyr::tbl(con, dbplyr::in_schema("public", "ahs_10_dist")) %>% collect()
+
+rn_list <- list(drown, dlhs3, srs_pop1113, un_pop_deaths) %>% 
+  setNames(c("drowning_deaths_mds", "dlhs3v", "srs_pop_11_13_v2", "un_pop_deaths_ind_16"))
+
+# render markdown files
+render_list(rn_list)
 

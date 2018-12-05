@@ -17,7 +17,7 @@ check_all <- function(input) {
   check_numbs_only <- function(x) {
     
     # length(x[grepl("^[0-9]{1,}$", x)]) #only numbers, no decimals
-    length(x[grepl("^[0-9]{1,}\\.*[0-9]{1,}$", x)]) #numbers with decimals
+    length(x[grepl("(^[0-9]{1,}\\.*[0-9]{1,}$)|^[0-9]{1,}$", x)]) #numbers with decimals
   }
   
   map_df(.x = input,.f = check_numbs_only) %>% 
