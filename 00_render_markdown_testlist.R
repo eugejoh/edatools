@@ -27,16 +27,20 @@ test_list <- list(
   setNames(c("mtcars", "airquality", "starwars", "swiss", "iris"))
 
 # parameterized markdown rendering ----------------------------------------
-render_list <- function(input, clear = FALSE) {
+render_list <- function(input, clear = FALSE, rmd = NULL) {
   if (!is.list(input)) stop("'input' argument must be a list")
   
   if (is.null(names(input))) stop("'input' should be a named list")
   
   if (length(input) == 0) stop("list length must be > 0")
+  
+  if (is.null(rmd)) {
+    rmd <- here::here("_markdown", "eda_test2.Rmd")
+  }
 
   for (i in seq_len(length(input))) {
     rmarkdown::render(
-      input = here::here("_markdown", "eda_test2.Rmd"),
+      input = rmd,
       output_file = paste0("eda_test2_", names(input)[i], ".html"),
       output_dir = here::here("_reports"),
       quiet = FALSE,
@@ -57,7 +61,7 @@ render_list <- function(input, clear = FALSE) {
 
 
 # Render ------------------------------------------------------------------
-render_list(test_list)
+render_list(test_list[3])
 
 
 # Reset -------------------------------------------------------------------
