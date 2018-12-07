@@ -52,16 +52,16 @@ render_list <- function(input, clear = FALSE, rmd = NULL) {
         categorical = TRUE
       )
     )
-    sendtg::tg_send_msg(text = paste0("Completed Rendering EDA Report: ", names(input)[i]))  
+    # sendtg::tg_send_msg(text = paste0("Completed Rendering EDA Report: ", names(input)[i]))  
   }
 
   if (clear) rm(list=setdiff(ls(), "render_list")) #child document causes problems if not cleared from ls()
-  
+
 }
 
 
 # Render ------------------------------------------------------------------
-render_list(test_list[3])
+render_list(test_list[3]); list.files(here::here("_reports"))
 
 
 # Reset -------------------------------------------------------------------
