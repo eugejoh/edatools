@@ -148,6 +148,8 @@ tab_check %>% select(variable, only_numbs, only_char, only_punc, only_blanks) %>
        x = "Variable", y = "Number of Rows")
 ```
 
+<!-- see https://gist.github.com/rmoff/a043676a2f084b81a434 -->
+<!-- see https://stackoverflow.com/questions/12095113/r-knitr-possible-to-programmatically-modify-chunk-labels/12097884#comment16218755_12101964 -->
 <!-- Continuous Variables -->
 ```{r cont_log, include = FALSE}
 if (length(names(dplyr::select_if(params$data, funs(is.numeric(.))))) < 1) {
@@ -162,8 +164,8 @@ for (j in names(dplyr::select_if(params$data, funs(is.numeric(.))))) { #based on
   out_cont <- c(out_cont, knitr::knit_expand('cont_var2.Rmd')) #apply child .Rmd to select variables
 }
 
-# res <- knitr::knit_child(text=unlist(out_cont)) #runs into problems with code chunk names
-# cat(res, sep = "\n") #how to resolve this issue? paste
+# res_cont <- knitr::knit_child(text=unlist(out_cont)) #runs into problems with code chunk names
+# cat(res_cont, sep = "\n") #how to resolve this issue? paste()? comment out `if` below
 ```
 `r if(cont_log) paste(knitr::knit(text=out_cont), collapse = '\n')`
 
@@ -180,6 +182,9 @@ out_catgorical <- NULL
 for (k in names(dplyr::select_if(params$data, funs(is.character(.) | is.factor(.)) ))) {
   out_catgorical <- c(out_catgorical, knitr::knit_expand('cat_var2.Rmd'))
 }
+
+# res_cat <- knitr::knit_child(text=unlist(out_catgorical)) #runs into problems with code chunk names
+# cat(res_cat, sep = "\n") #how to resolve this issue? paste()? comment out `if` below
 ```
 `r if(ca_log) paste(knitr::knit(text=out_catgorical), collapse = '\n')`
 
