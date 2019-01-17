@@ -32,12 +32,12 @@ if (any(grepl("R", list.files(here::here())))) invisible(lapply(list.files(here:
 
 # scale for fig height
 nvar <- length(names(params$dat))
-fig.h <- nvar*0.8
+fig.h <- nvar*0.7
 ```
 
 ```{r load_packages, echo=FALSE, include=FALSE}
 packs <- c("haven","dplyr","tidyr","purrr","data.table","forcats","stringr", #process
-           "ggplot2","scales","ggfortify","grid","gridExtra", #data viz
+           "ggplot2","scales","ggfortify","grid","gridExtra", "plotly", #data viz
            "kableExtra","DT","htmlwidgets") #html widgets
 install_packs(packs); rm(packs)
 ```
@@ -134,8 +134,9 @@ tab_check %>%
 ```
 
 # Variable Content Plot
+Generates an interactive [plotly](https://plot.ly/ggplot2/) bar plot of variable content by raw counts.
 ```{r p_content, fig.height=fig.h, echo=FALSE}
-tab_check %>% select(variable, only_numbs, only_char, only_punc, only_blanks) %>% 
+p_vars <- tab_check %>% select(variable, only_numbs, only_char, only_punc, only_blanks) %>% 
   gather(key="var_name",value="num_rows",-variable) %>% 
   mutate(var_name = factor(var_name, 
                            levels = c("only_numbs", "only_char", "only_punc", "only_blanks"),
@@ -144,8 +145,10 @@ tab_check %>% select(variable, only_numbs, only_char, only_punc, only_blanks) %>
   geom_bar(stat='identity', colour = "grey15") +
   coord_flip() +
   scale_fill_brewer(type = "qual", palette = 6, name = "Content") +
-  labs(title = paste0(params$name_i, ": Variable Content Composition"),
+  labs(title = paste0(params$name_i, ": Variable Content Composition", "(nrow=",nrow(params$data), ")"),
        x = "Variable", y = "Number of Rows")
+
+plotly::ggplotly(p_vars)
 ```
 
 <!-- see https://gist.github.com/rmoff/a043676a2f084b81a434 -->
