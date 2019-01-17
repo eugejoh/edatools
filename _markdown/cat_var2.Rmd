@@ -10,9 +10,11 @@ cnt <- params$data %>% count(!!as.name(var_ca)) %>%
 
 cnt %>% 
   add_DT(caption = paste0("Counts and Proportions for: ", var_ca))
+
+cond <- all(ifelse(pull(count(starwars, name),n) == 1, TRUE,FALSE))
 ```
 
-```{r p_ca-{{k}}, echo=FALSE, eval=TRUE}
+```{r p_ca-{{k}}, echo=FALSE, eval=ifelse(cond, FALSE, TRUE)}
 cnt %>% 
   ggplot(aes(y=n, x=reorder(!!as.name(var_ca), n), fill = !!as.name(var_ca))) +
   geom_bar(stat='identity') +
