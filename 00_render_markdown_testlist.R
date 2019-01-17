@@ -59,9 +59,8 @@ render_list <- function(input, clear = FALSE, rmd = NULL) {
 
 }
 
-
 # Render ------------------------------------------------------------------
-render_list(test_list[3]); list.files(here::here("_reports"))
+render_list(test_list); list.files(here::here("_reports"))
 
 
 # Reset -------------------------------------------------------------------
